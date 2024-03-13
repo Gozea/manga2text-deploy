@@ -1,0 +1,11 @@
+flask
+requests
+pillow
+numpy
+scikit-image
+opencv-python
+ultralytics
+transformers
+pytesseract
+tesseract
+optimum[onnxruntime]
