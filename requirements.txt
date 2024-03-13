@@ -1,4 +1,5 @@
 flask
+Gunicorn
 requests
 pillow
 numpy
