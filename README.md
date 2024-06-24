@@ -12,7 +12,11 @@ Deployement for serverless apps detailed in the [MangaBubbles](https://github.co
 
 ## Docker run
 
-```docker run your-name/repo-name:build-version```
+```docker run local-name/local-repo-name:build-version```
+
+## Link local image to remote repo
+
+```docker tag local-name/local-repo-name:build-version remote-account/remote-repo:build-version```
 
 ## Push to docker hub
 
