@@ -8,4 +8,12 @@ Deployement for serverless apps detailed in the [MangaBubbles](https://github.co
 
 ## Docker build
 
-```docker build -t your-name/repo-name:build.version .```
+```docker build -t your-name/repo-name:build-version .```
+
+## Docker run
+
+```docker run your-name/repo-name:build-version```
+
+## Docker push
+
+```docker push your-name/repo-name:build-version```
