@@ -16,8 +16,10 @@ RUN apt update && apt install -y tesseract-ocr libtesseract-dev ffmpeg libsm6 li
 # Copy the Flask application code to the working directory
 COPY * ./
 
+
 # Expose the port on which the Flask app will run
-EXPOSE 5000
+EXPOSE 8000
 
 # Set the entry point command to run the Flask application
-CMD ["python", "app.py"]
+#CMD ["python", "app.py"]
+CMD ["gunicorn","--config", "gunicorn_config.py", "app:app"]

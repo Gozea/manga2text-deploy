@@ -13,7 +13,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 from ultralytics import YOLO
 import pytesseract
 
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from optimum.onnxruntime import ORTModelForSeq2SeqLM
 
 from clean_utils import *
@@ -21,12 +21,27 @@ from clean_utils import *
 # Run the model on the backend
 d=os.path.join(os.getcwd())
 yolo_model= os.path.join(d, "yolov8n.onnx")
-ja2en_model = os.path.join(d, "ja2en_onnx")
+ja2en_model = "Gozear/jp2en"
+
+# load model
+yolo = YOLO(yolo_model, task='detect')
+tessdata_dir = r'-l tesseract_ja_vert_fast+tesseract_ja_horz_fast --tessdata-dir "./"'
+model_checkpoint = ja2en_model
+tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
+model = AutoModelForSeq2SeqLM.from_pretrained(model_checkpoint)
+#model = ORTModelForSeq2SeqLM.from_pretrained(model_checkpoint)
+
+# logging
+if len(logging.getLogger().handlers) > 0:
+    # The Lambda environment pre-configures a handler logging to stderr. If a handler is already configured,
+    # `.basicConfig` does not execute. Thus we set the level directly.
+    logging.getLogger().setLevel(logging.INFO)
+else:
+    logging.basicConfig(level=logging.INFO)
 
 # predict boxes with YOLO
 def predict_YOLO(image):
     # yolo
-    yolo = YOLO(yolo_model, task='detect')
     predict_boxes = yolo(image)
     # crops
     boxes = []
@@ -41,7 +56,6 @@ def predict_YOLO(image):
 # predict texts with tesseract
 def predict_tesseract(boxes):
     # tesseract
-    tessdata_dir = r'-l tesseract_ja_vert_fast+tesseract_ja_horz_fast --tessdata-dir "./"'
     texts = []
     for box in boxes:
         texts.append(pytesseract.image_to_string(clean_box(box), config=tessdata_dir))
@@ -51,12 +65,8 @@ def predict_tesseract(boxes):
 
 # predict translations with mBART
 def predict_translation(texts):
-    # mBART
-    model_checkpoint = ja2en_model
-    tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
-    model = ORTModelForSeq2SeqLM.from_pretrained(model_checkpoint)
     # translation
-    tokenized_ja = tokenizer(clean_texts, padding=True, truncation=True, return_tensors='pt')
+    tokenized_ja = tokenizer(texts, padding=True, truncation=True, return_tensors='pt')
     out = model.generate(**tokenized_ja, max_new_tokens=40, decoder_start_token_id=tokenizer.lang_code_to_id["en_XX"])
     translations = tokenizer.batch_decode(out, skip_special_tokens=True)
     return translations
@@ -80,18 +90,16 @@ def translate_from_image(images):
         inference_time = np.round((end - start) * 1000, 2)
         logging.info(f'tesseract time : {inference_time}')
         # translations
-        """
         start = time.time()
         translations = predict_translation(tesseract_text)
         end = time.time()
         inference_time = np.round((end - start) * 1000, 2)
         logging.info(f'translation time : {inference_time}')
-        """
         # json
         resp = {
             'coordinates' : yolo_coordinates,
             'texts': tesseract_text,
-            #'translations': translations
+            'translations': translations
         }
         responses[name] = resp
 
