@@ -2,6 +2,8 @@
 
 Deployement for serverless apps detailed in the [MangaBubbles](https://github.com/Gozea/MangaBubble) repository
 
+You'll be able to deploy this app on your own terminal or on a Cloud server
+
 This contains a dockerfile you can use to deploy it on your own server.
 =======
 ## Enable Docker with systemd
@@ -27,3 +29,4 @@ This contains a dockerfile you can use to deploy it on your own server.
 ## Remove local containers and images
 
 ```docker rm -vf $(docker ps -a -q) && docker rmi -f $(docker images -a -q)```
+
